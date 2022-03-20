@@ -9,4 +9,5 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flame: ^1.0.0
+  flame: ^1.0.0-releasecandidate.16
+  flame_forge2d: ^0.8.2-releasecandidate.15
