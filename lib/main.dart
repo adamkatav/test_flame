@@ -35,14 +35,14 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
 
     groundBody = world.createBody(BodyDef());
     final center = screenToWorld(camera.viewport.effectiveSize / 2);
-    var ball = Ball(center, 1, bodyType: BodyType.dynamic);
-    add(ball);
+    /*var ball = Ball(center, 1, bodyType: BodyType.static);
+    add(ball);*/
     final poly = Polygon([
       center + Vector2(0, 0),
       center + Vector2(0, 5),
       center + Vector2(5, 0),
-      //center + Vector2(5, 5)
-    ]);
+      center + Vector2(5, 5)
+    ], bodyType: BodyType.static);
     add(poly);
     grabbedBody = poly;
   }
@@ -120,7 +120,8 @@ class Ball extends TappableBodyComponent {
 class Polygon extends TappableBodyComponent {
   final List<Vector2> vertecies;
 
-  Polygon(this.vertecies) : super(vec2Median(vertecies));
+  Polygon(this.vertecies, {BodyType bodyType = BodyType.dynamic})
+      : super(vec2Median(vertecies), bodyType: bodyType);
 
   @override
   Body createBody() {
