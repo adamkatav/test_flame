@@ -39,38 +39,81 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
     final bottom_right = screenToWorld(camera.viewport.effectiveSize);
     final upper_left = Vector2(0, 0);
     final bottom_left = Vector2(upper_left.x, bottom_right.y);
+    // 271 is a convinient number to have nice constents while developing on my 14" laptop
+    double scale = bottom_right.length / 271;
 
+    //To find locations on the screen
     /*var test_ball = Ball(Vector2(upper_left.x, bottom_right.y), 2.5,
         bodyType: BodyType.static);
     await add(test_ball);*/
 
-    var wheel1 = Ball(center + Vector2(-10, -5) + Vector2(2.5, 0), 2.5,
+    //Just a fun ball
+    var ball1 = Ball(center + Vector2(5, 5) * scale, 3 * scale,
+        bodyType: BodyType.dynamic);
+    await add(ball1);
+    var verteces = [
+      Vector2(-10, -5) * scale,
+      Vector2(-10, 5) * scale,
+      Vector2(10, -5) * scale,
+      Vector2(10, 5) * scale
+    ];
+/*
+    // Cart example start
+    var wheel1 = Ball(
+        center + (Vector2(-10, -5) + Vector2(2.5, 0)) * scale, 2.5 * scale,
         bodyType: BodyType.dynamic);
     await add(wheel1);
-    var wheel2 = Ball(center + Vector2(10, -5) + Vector2(-2.5, 0), 2.5,
+    var wheel2 = Ball(
+        center + (Vector2(10, -5) + Vector2(-2.5, 0)) * scale, 2.5 * scale,
         bodyType: BodyType.dynamic);
     await add(wheel2);
-    var verteces = [
-      Vector2(-10, -5),
-      Vector2(-10, 5),
-      Vector2(10, -5),
-      Vector2(10, 5)
-    ];
+
     final cartRect = Polygon(center, verteces, bodyType: BodyType.dynamic);
     await add(cartRect);
     world.createJoint(RevoluteJointDef()
       ..initialize(cartRect.body, wheel1.body, wheel1.position));
     world.createJoint(RevoluteJointDef()
       ..initialize(cartRect.body, wheel2.body, wheel2.position));
-    final rect =
-        Polygon(center + Vector2(50, 50), verteces, bodyType: BodyType.dynamic);
+    // Cart example end
+*/
+
+    //Rectangle with friction
+    final rect = Polygon(center + Vector2(50, 50) * scale, verteces,
+        bodyType: BodyType.dynamic);
     await add(rect);
+
+    //To show difference between cart and rectangle
     final trig = Polygon(upper_left, [upper_left, bottom_left, bottom_right],
         bodyType: BodyType.static);
     await add(trig);
-    grabbedBody = cartRect;
+    grabbedBody = makeCart(center, verteces, 2.5 * scale);
   }
 
+  //Expects scaled values
+  Polygon makeCart(Vector2 offset, List<Vector2> verteces, double wheel_radius,
+      {BodyType bodyType = BodyType.dynamic}) {
+    final center = screenToWorld(camera.viewport.effectiveSize / 2);
+    final rect_bottom_unit_vec = (verteces[2] - verteces[0]).normalized();
+    var wheel1 = Ball(
+        center + (verteces[0] + rect_bottom_unit_vec * wheel_radius),
+        wheel_radius,
+        bodyType: bodyType);
+    add(wheel1);
+    var wheel2 = Ball(
+        center + (verteces[2] + rect_bottom_unit_vec * -wheel_radius),
+        wheel_radius,
+        bodyType: bodyType);
+    add(wheel2);
+    final cartRect = Polygon(center, verteces, bodyType: bodyType);
+    add(cartRect);
+    world.createJoint(RevoluteJointDef()
+      ..initialize(cartRect.body, wheel1.body, wheel1.position));
+    world.createJoint(RevoluteJointDef()
+      ..initialize(cartRect.body, wheel2.body, wheel2.position));
+    return cartRect;
+  }
+
+  //For mouseJoint
   @override
   bool onDragUpdate(int pointerId, DragUpdateInfo details) {
     final mouseJointDef = MouseJointDef()
@@ -88,6 +131,7 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
     return false;
   }
 
+  //For mouseJoint
   @override
   bool onDragEnd(int pointerId, DragEndInfo details) {
     if (mouseJoint == null) {
@@ -99,6 +143,9 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
   }
 }
 
+/**
+ * Abstract class that encapsulate all rigid bodies properties
+ */
 abstract class TappableBodyComponent extends BodyComponent with Tappable {
   final Vector2 position;
   final BodyType bodyType;
@@ -141,12 +188,15 @@ class Ball extends TappableBodyComponent {
   }
 }
 
+/**
+ * Polygon class, remember to place veteces around offset so MouseJoint will work correctly
+ */
 class Polygon extends TappableBodyComponent {
   final List<Vector2> vertecies;
 
   Polygon(Vector2 offset, this.vertecies,
       {BodyType bodyType = BodyType.dynamic})
-      : super(/*vec2Median(vertecies) + */ offset, bodyType: bodyType);
+      : super(offset, bodyType: bodyType);
 
   @override
   Body createBody() {
@@ -154,34 +204,3 @@ class Polygon extends TappableBodyComponent {
     return tappableBCreateBody(shape);
   }
 }
-/*
-class Cart extends TappableBodyComponent {
-  final List<Vector2> vertecies;
-  final Vector2 offset;
-  final double radius;
-  Cart(this.offset, this.vertecies, this.radius,
-      {BodyType bodyType = BodyType.dynamic})
-      : super(vec2Median(vertecies) + offset, bodyType: bodyType);
-
-  @override
-  Body createBody() {
-    Polygon rect = Polygon(offset, vertecies);
-    Ball wheel1 = Ball(
-        offset - vertecies[1], radius); // offset - vertecies[1] is B vertex
-    Ball wheel2 = Ball(
-        offset - vertecies[2], radius); // offset - vertecies[1] is C vertex
-    Body rectBody = rect.createBody();
-    Body wheel1Body = wheel1.createBody();
-    Body wheel2Body = wheel2.createBody();
-    rect.add(wheel1);
-    rect.add(wheel2);
-
-    world.createJoint(
-        RevoluteJointDef()..initialize(rectBody, wheel1Body, wheel1.position));
-    world.createJoint(
-        RevoluteJointDef()..initialize(rectBody, wheel2Body, wheel2.position));
-        
-    return rectBody;
-  }
-}
-*/
