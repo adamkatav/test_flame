@@ -31,20 +31,44 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
   @override
   Future<void> onLoad() async {
     final boundaries = createBoundaries(this); //Adding boundries
-    boundaries.forEach(add);
+    boundaries.forEach(await add);
 
     groundBody = world.createBody(BodyDef());
+
     final center = screenToWorld(camera.viewport.effectiveSize / 2);
-    /*var ball = Ball(center, 1, bodyType: BodyType.static);
-    add(ball);*/
-    final poly = Polygon([
-      center + Vector2(0, 0),
-      center + Vector2(0, 5),
-      center + Vector2(5, 0),
-      center + Vector2(5, 5)
-    ], bodyType: BodyType.static);
-    add(poly);
-    grabbedBody = poly;
+    final bottom_right = screenToWorld(camera.viewport.effectiveSize);
+    final upper_left = Vector2(0, 0);
+    final bottom_left = Vector2(upper_left.x, bottom_right.y);
+
+    /*var test_ball = Ball(Vector2(upper_left.x, bottom_right.y), 2.5,
+        bodyType: BodyType.static);
+    await add(test_ball);*/
+
+    var wheel1 = Ball(center + Vector2(-10, -5) + Vector2(2.5, 0), 2.5,
+        bodyType: BodyType.dynamic);
+    await add(wheel1);
+    var wheel2 = Ball(center + Vector2(10, -5) + Vector2(-2.5, 0), 2.5,
+        bodyType: BodyType.dynamic);
+    await add(wheel2);
+    var verteces = [
+      Vector2(-10, -5),
+      Vector2(-10, 5),
+      Vector2(10, -5),
+      Vector2(10, 5)
+    ];
+    final cartRect = Polygon(center, verteces, bodyType: BodyType.dynamic);
+    await add(cartRect);
+    world.createJoint(RevoluteJointDef()
+      ..initialize(cartRect.body, wheel1.body, wheel1.position));
+    world.createJoint(RevoluteJointDef()
+      ..initialize(cartRect.body, wheel2.body, wheel2.position));
+    final rect =
+        Polygon(center + Vector2(50, 50), verteces, bodyType: BodyType.dynamic);
+    await add(rect);
+    final trig = Polygon(upper_left, [upper_left, bottom_left, bottom_right],
+        bodyType: BodyType.static);
+    await add(trig);
+    grabbedBody = cartRect;
   }
 
   @override
@@ -90,7 +114,7 @@ abstract class TappableBodyComponent extends BodyComponent with Tappable {
     final fixtureDef = FixtureDef(shape)
       ..restitution = 0.8
       ..density = 1.0
-      ..friction = 0.4;
+      ..friction = 1;
 
     final bodyDef = BodyDef()
       // To be able to determine object in collision
@@ -120,8 +144,9 @@ class Ball extends TappableBodyComponent {
 class Polygon extends TappableBodyComponent {
   final List<Vector2> vertecies;
 
-  Polygon(this.vertecies, {BodyType bodyType = BodyType.dynamic})
-      : super(vec2Median(vertecies), bodyType: bodyType);
+  Polygon(Vector2 offset, this.vertecies,
+      {BodyType bodyType = BodyType.dynamic})
+      : super(/*vec2Median(vertecies) + */ offset, bodyType: bodyType);
 
   @override
   Body createBody() {
@@ -129,3 +154,34 @@ class Polygon extends TappableBodyComponent {
     return tappableBCreateBody(shape);
   }
 }
+/*
+class Cart extends TappableBodyComponent {
+  final List<Vector2> vertecies;
+  final Vector2 offset;
+  final double radius;
+  Cart(this.offset, this.vertecies, this.radius,
+      {BodyType bodyType = BodyType.dynamic})
+      : super(vec2Median(vertecies) + offset, bodyType: bodyType);
+
+  @override
+  Body createBody() {
+    Polygon rect = Polygon(offset, vertecies);
+    Ball wheel1 = Ball(
+        offset - vertecies[1], radius); // offset - vertecies[1] is B vertex
+    Ball wheel2 = Ball(
+        offset - vertecies[2], radius); // offset - vertecies[1] is C vertex
+    Body rectBody = rect.createBody();
+    Body wheel1Body = wheel1.createBody();
+    Body wheel2Body = wheel2.createBody();
+    rect.add(wheel1);
+    rect.add(wheel2);
+
+    world.createJoint(
+        RevoluteJointDef()..initialize(rectBody, wheel1Body, wheel1.position));
+    world.createJoint(
+        RevoluteJointDef()..initialize(rectBody, wheel2Body, wheel2.position));
+        
+    return rectBody;
+  }
+}
+*/
