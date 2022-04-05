@@ -34,7 +34,7 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
   static late BodyComponent grabbedBody;
   late Body groundBody;
   MyGame() : super(gravity: Vector2(0, -10.0));
-
+  late double scale;
   //Game onLoad
   @override
   Future<void> onLoad() async {
@@ -42,7 +42,7 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
     final bottom_right = screenToWorld(camera.viewport.effectiveSize);
     final upper_left = Vector2(0, 0);
     final bottom_left = Vector2(upper_left.x, bottom_right.y);
-    double scale = bottom_right.length / 271;
+    scale = bottom_right.length / 271;
     var dummy_for_mouse_joint =
         Ball(Vector2(-5, 5) * scale, 0.1 * scale, bodyType: BodyType.static);
     await add(dummy_for_mouse_joint);
@@ -127,7 +127,12 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
         strToVec2(cart["C"]) * scale - center_of_mass,
         strToVec2(cart["D"]) * scale - center_of_mass
       ];
-      Polygon pol = await makeCart(ver, (cart["radius"] * scale));
+      Polygon pol = await makeCart(
+          center_of_mass,
+          ver,
+          (cart["radius"] * scale),
+          strToVec2(cart["wheel1"]) * scale,
+          strToVec2(cart["wheel2"]) * scale);
       cart_list.add(pol);
       await add(pol);
     }
@@ -186,7 +191,7 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
             body1.body, body2.body, body1.center_of_mass, body2.center_of_mass)
         ..dampingRatio = 0.0
         ..frequencyHz =
-            (1 / (2 * pi) * sqrt(20 / (body2.body.mass + body1.body.mass))));
+            (1 / (2 * pi) * sqrt(50 / (body2.body.mass + body1.body.mass))));
     }
 
     super.onLoad();
@@ -198,21 +203,14 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
   }
 
   //Expects scaled values
-  Future<Polygon> makeCart(List<Vector2> verteces, double wheel_radius,
+  Future<Polygon> makeCart(Vector2 center_of_mass, List<Vector2> verteces,
+      double wheel_radius, Vector2 wheel1_pos, Vector2 wheel2_pos,
       {BodyType bodyType = BodyType.dynamic}) async {
-    final center = screenToWorld(camera.viewport.effectiveSize / 2);
-    final rect_bottom_unit_vec = (verteces[2] - verteces[0]).normalized();
-    var wheel1 = Ball(
-        center + (verteces[0] + rect_bottom_unit_vec * wheel_radius),
-        wheel_radius,
-        bodyType: bodyType);
+    var wheel1 = Ball(wheel1_pos, wheel_radius, bodyType: bodyType);
     await add(wheel1);
-    var wheel2 = Ball(
-        center + (verteces[2] + rect_bottom_unit_vec * -wheel_radius),
-        wheel_radius,
-        bodyType: bodyType);
+    var wheel2 = Ball(wheel2_pos, wheel_radius, bodyType: bodyType);
     await add(wheel2);
-    final cartRect = Polygon(center, verteces, bodyType: bodyType);
+    final cartRect = Polygon(center_of_mass, verteces, bodyType: bodyType);
     await add(cartRect);
 
     world.createJoint(RevoluteJointDef()

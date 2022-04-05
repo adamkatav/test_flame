@@ -1,13 +1,22 @@
 {
     "Carts": [
       {
-        "A": "50, -50",
-        "B": "50, -30",
-        "C": "5, -50",
-        "D": "5, -30",
-        "wheel1": "77, 148",
-        "wheel2": "31, 119",
-        "radius":  9
+        "A": "240, -50",
+        "B": "240, -30",
+        "C": "195, -50",
+        "D": "195, -30",
+        "wheel1": "235, -50",
+        "wheel2": "200, -50",
+        "radius":  5
+      },
+      {
+        "A": "190, -50",
+        "B": "190, -30",
+        "C": "145, -50",
+        "D": "145, -30",
+        "wheel1": "185, -50",
+        "wheel2": "150, -50",
+        "radius":  5
       }
     ],
     "Balls": [
@@ -33,12 +42,20 @@
       }
     ],
     "Lines": [],
-    "Springs": [{
-        "connectionA" : "Triangles",
-        "connectionB" : "Blocks",
-        "indexA" : 0,
-        "indexB" : 0
-    }],
+    "Springs": [
+        {
+            "connectionA" : "Triangles",
+            "connectionB" : "Blocks",
+            "indexA" : 0,
+            "indexB" : 0
+        },
+        {
+            "connectionA" : "Carts",
+            "connectionB" : "Carts",
+            "indexA" : 0,
+            "indexB" : 1
+        }
+    ],
     "Triangles": [
       {
         "A": "80, -5",
