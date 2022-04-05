@@ -1,0 +1,4 @@
+io/flutter/plugins/GeneratedPluginRegistrant.java
+ io.flutter.plugins.GeneratedPluginRegistrant
+com/sipl/test_flame/BuildConfig.java
+ com.sipl.test_flame.BuildConfig
