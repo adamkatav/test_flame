@@ -54,6 +54,12 @@
             "connectionB" : "Carts",
             "indexA" : 0,
             "indexB" : 1
+        },
+        {
+            "connectionA" : "Carts",
+            "connectionB" : "Blocks",
+            "indexA" : 1,
+            "indexB" : 0
         }
     ],
     "Triangles": [
