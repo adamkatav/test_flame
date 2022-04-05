@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -49,14 +51,25 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
     await add(test_ball);*/
 
     //Just a fun ball
-    var ball1 = Ball(center + Vector2(5, 5) * scale, 3 * scale,
+    var ball1 = Ball(center + Vector2(5, 5) * scale, 5 * scale,
+        bodyType: BodyType.static);
+    await add(ball1);
+
+    var ball2 = Ball(center + Vector2(30, 30) * scale, 5 * scale,
         bodyType: BodyType.dynamic);
-    add(ball1);
-    var verteces = [
+    await add(ball2);
+
+    var cart_verteces = [
       Vector2(-10, -5) * scale,
       Vector2(-10, 5) * scale,
       Vector2(10, -5) * scale,
       Vector2(10, 5) * scale
+    ];
+    var verteces = [
+      Vector2(-20, -5) * scale,
+      Vector2(-20, 5) * scale,
+      Vector2(0, -5) * scale,
+      Vector2(0, 5) * scale
     ];
 /*
     // Cart example start
@@ -78,19 +91,26 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
     // Cart example end
 */
     //Rectangle with friction
-    final rect = Polygon(center + Vector2(50, 50) * scale, verteces,
+    /*final rect = Polygon(center + Vector2(50, 50) * scale, verteces,
         bodyType: BodyType.dynamic);
-    add(rect);
-
+    await add(rect);
+*/
     //To show difference between cart and rectangle
     final trig = Polygon(upper_left, [upper_left, bottom_left, bottom_right],
         bodyType: BodyType.static);
-    add(trig);
-    makeCart(center, verteces, 2.5 * scale);
+    await add(trig);
+    Polygon cart = await makeCart(center, cart_verteces, 2.5 * scale);
+
+    //DistantJoint example
+    world.createJoint(DistanceJointDef()
+      ..initialize(ball1.body, ball2.body, ball1.position, ball2.position)
+      ..dampingRatio = 0.0
+      ..frequencyHz =
+          (1 / (2 * pi) * sqrt(20 / (ball2.body.mass + ball1.body.mass))));
   }
 
   //Expects scaled values
-  Future<void> makeCart(
+  Future<Polygon> makeCart(
       Vector2 offset, List<Vector2> verteces, double wheel_radius,
       {BodyType bodyType = BodyType.dynamic}) async {
     final center = screenToWorld(camera.viewport.effectiveSize / 2);
@@ -112,6 +132,7 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
       ..initialize(cartRect.body, wheel1.body, wheel1.position));
     world.createJoint(RevoluteJointDef()
       ..initialize(cartRect.body, wheel2.body, wheel2.position));
+    return cartRect;
   }
 
   //For mouseJoint
