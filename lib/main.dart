@@ -25,8 +25,11 @@ Vector2 strToVec2(String vec) {
 }
 
 void main() {
-  final game = MyGame();
-  runApp(GameWidget(game: game));
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+  DeviceOrientation.landscapeLeft,
+  DeviceOrientation.landscapeRight,
+  ]).then((value) => runApp(GameWidget(game: MyGame())));
 }
 
 class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
@@ -38,10 +41,10 @@ class MyGame extends Forge2DGame with MultiTouchDragDetector, HasTappables {
   //Game onLoad
   @override
   Future<void> onLoad() async {
-    final center = screenToWorld(camera.viewport.effectiveSize / 2);
+    //final center = screenToWorld(camera.viewport.effectiveSize / 2);
     final bottom_right = screenToWorld(camera.viewport.effectiveSize);
-    final upper_left = Vector2(0, 0);
-    final bottom_left = Vector2(upper_left.x, bottom_right.y);
+    //final upper_left = Vector2(0, 0);
+    //final bottom_left = Vector2(upper_left.x, bottom_right.y);
     scale = bottom_right.length / 271;
     var dummy_for_mouse_joint =
         Ball(Vector2(-5, 5) * scale, 0.1 * scale, bodyType: BodyType.static);
